@@ -73,20 +73,21 @@ class TimeList {
         TimeNode *last;
     public:
         TimeList(): total(0), first(NULL), last(NULL) { }
-        // 0 正常加入  -1 新建
-        int add(unsigned int yetDuration) {
+        /*新一个时间戳,表示又切换回来了
+         *0 正常加入 */
+        int add() {
             if(last == NULL) {
                 last = new TimeNode();
                 first = last;
                 return -1;
             }
-            last->setDuration(yetDuration);
-            total += yetDuration;
             TimeNode *p = new TimeNode();
             last->setNext(p);
             last = p;
             return 0;
         }
+        /* 把当前的时间戳加上duration
+         * 更新total */
         int finish(unsigned int duration) {
             if(last == NULL) {
                 return -1;
@@ -97,6 +98,9 @@ class TimeList {
         }
         unsigned int getTotal() {
             return this->total;
+        }
+        TimeNode *getFirst() {
+            return this->first;
         }
         ~TimeList() {
             TimeNode *x = first;
@@ -114,30 +118,30 @@ int main()
     const string cmd("xprop -id $(xprop -root | awk '/_NET_ACTIVE_WINDOW\\(WINDOW\\)/{print $NF}') | awk '/_NET_WM_PID\\(CARDINAL\\)/{print $NF}'");
     string fileName;
     string progName;
+    string newProg;
     string pid;
-    const unsigned int interval = 5;
+    const unsigned int interval = 5;  // 轮询间隔（s）
     unsigned int duration = 0;
     map<string, TimeList> progMap;
-    int count = 10;
+    int count = 5;
     while(count > 0) {
         count--;
         if(getPID(cmd, pid) == 0) {
-            cout << pid << endl;
             fileName = "/proc/"+ pid +"/status";
-            cout << fileName << endl;
-            switch(getProgName(fileName, progName)) {
-                case 0: // 新程序
-                    progMap[progName].add(duration);
+            if(getProgName(fileName, newProg) == 0) {
+                // 第一次记录，progName为空
+                if(progName.length() == 0) {
+                    progName = newProg;
+                    progMap[progName].add();
+                }
+                // 除上面的情况外
+                else {
+                    progMap[progName].finish(duration);
+                    progName = newProg;
+                    progMap[progName].add();
                     duration = 0;
-                    break;
-                case 1: // 旧程序
-                    break;
-                case -1:
-                    break;
-                default:
-                    break;
+                }
             }
-            cout << progName << endl;
         }
         sleep(interval);
         duration += interval;
@@ -145,8 +149,14 @@ int main()
     progMap[progName].finish(duration);
     map<string, TimeList>::iterator it = progMap.begin();
     while(it != progMap.end()) {
-        cout << it->first << endl;
-        cout << it->second.getTotal() << endl;
+        cout << it->first << "\t" << it->second.getTotal() << endl;
+        TimeNode *p = it->second.getFirst();
+        while(p != NULL) {
+            string t;
+            p->getTime(t);
+            cout << t << "\t" << p->getDuration() << endl;
+            p = p->getNext();
+        }
         it++;
     }
     return 0;

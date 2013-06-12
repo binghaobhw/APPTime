@@ -1,1 +1,3 @@
-# This is the project of Wang Binghao and Yang Yi for Software Design III.
+APPTime——软设III项目
+--------------------
+by 王炳浩 杨毅

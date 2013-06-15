@@ -1,6 +1,7 @@
 #include "TimeManager.h"
 #include "TimeReader.h"
 #include "TimeWriter.h"
+#include "TimeNode.h"
 #include <fstream>
 TimeManager::TimeManager(): 
 		programTime(std::map<std::string, TimeList>()),
@@ -45,11 +46,46 @@ void TimeManager::removeTimer(std::string name) {
 void TimeManager::getBriefHistory(std::map<std::string, unsigned int> &briefHistory) {
 	TimeReader::readSummary(briefHistory);
 }
-std::map<std::string, TimeList> TimeManager::getFullHistory() {
-	return history;
+void TimeManager::getHistory(std::string name, std::vector<unsigned int> &durationList) {
+	if (history.size() == 0) {
+		TimeReader historyReader(history);
+		historyReader.read();
+	}
+	durationList.clear();
+	std::map<std::string, TimeList>::iterator it = history.find(name);
+	TimeNode *p;
+	if (it != history.end()) {
+		p = it->second.getFirst();
+		while (p != NULL) {
+			durationList.push_back(p->getDuration());
+			p = p->getNext();
+		}
+	}
 }
-std::map<std::string, TimeList> TimeManager::getProgramTime() {
-	return programTime;
+void TimeManager::getHistory(std::string name, std::vector<std::string> &timeStampList, std::vector<unsigned int> &durationList) {
+	getHistory(name, durationList);
+	timeStampList.clear();
+	std::map<std::string, TimeList>::iterator it = history.find(name);
+	TimeNode *p;
+	std::string timeStamp;
+	if (it != history.end()) {
+		p = it->second.getFirst();
+		while (p != NULL) {
+			p->getTime(timeStamp);
+			timeStampList.push_back(timeStamp);
+			p = p->getNext();
+		}
+	}
+}
+void TimeManager::getProgramTime(std::map<std::string, unsigned int> &timeList) {
+	timeList.clear();
+	std::map<std::string, TimeList>::iterator it;
+	for (it = programTime.begin(); it != programTime.end(); ++it) {
+		timeList[it->first] = it->second.getTotal();
+	}
+}
+std::map<std::string, unsigned int> TimeManager::getTimerList() {
+	return detector.getTimerList();
 }
 TimeManager::~TimeManager() {
 	// 写统计信息
@@ -95,10 +131,4 @@ void TimeManager::getTopWindowName(std::string &programName) {
         return;
     }
     return;
-}
-void TimeManager::getHistory() {
-	if (history.size() == 0) {
-		TimeReader historyReader(history);
-		historyReader.read();
-	}
 }

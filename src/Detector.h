@@ -16,6 +16,7 @@ class Detector {
 		void write();
 		// 读文件到timeList
 		void read();
+		std::map<std::string, unsigned int> getTimerList();
 	private:
 		std::map<std::string, unsigned int> timerList;
 		std::map<std::string, TimeList> &progTime;

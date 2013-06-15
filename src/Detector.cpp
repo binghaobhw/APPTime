@@ -47,3 +47,6 @@ void Detector::read() {
 	}
 	in.close();
 }
+std::map<std::string, unsigned int> Detector::getTimerList() {
+	return timerList;
+}

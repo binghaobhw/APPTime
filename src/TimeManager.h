@@ -18,6 +18,8 @@ class TimeManager {
 		void addTimer(std::string name, unsigned int time);
 		// 删除一个定时
 		void removeTimer(std::string name);
+		// 定时器延迟
+		void delay(std::string name);
 		// 获取历史内容：程序名，所用总时长
 		// 写入briefHistory
 		void getBriefHistory(std::map<std::string, unsigned int> &briefHistory);

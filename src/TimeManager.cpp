@@ -43,6 +43,10 @@ void TimeManager::addTimer(std::string name, unsigned int time) {
 void TimeManager::removeTimer(std::string name) {
 	detector.removeTimer(name);
 }
+// 定时器延迟
+void TimeManager::delay(std::string name) {
+	detector.delay(name);
+}
 void TimeManager::getBriefHistory(std::map<std::string, unsigned int> &briefHistory) {
 	TimeReader::readSummary(briefHistory);
 }

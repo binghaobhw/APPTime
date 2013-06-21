@@ -4,16 +4,36 @@
 #include <iostream>
 #include <pthread.h>
 #include "TimeManager.h"
+#include <stdio.h> 
+#include <string.h> 
+#include <signal.h> 
+
 
 TimeManager timeManager;
 unsigned int interval = 1;
+int used = 0;
 
+void *warning(void *arg) {
+	used = 1;
+	std::string name((char *)arg);
+    std::string cmd("./warning " + name);
+	std::string pid;
+	FILE* pipe = popen(cmd.c_str(), "r");
+	pclose(pipe);
+	timeManager.delay(name);
+	used = 0;
+}
 void *backend(void *arg) {
 	std::string name;
+	pthread_t tid;
 	while (1) {
 		name = timeManager.keepTrack();
 		if (name.size() != 0) {
-			std::cout << name << " timeout" << std::endl;
+			if (used == 0) {
+				char c[64];
+				strcpy(c, name.c_str());
+				pthread_create(&tid, NULL, warning, c);
+			}
 		}
 		sleep(interval);
 	}
@@ -30,6 +50,8 @@ void *frontend(void *arg) {
 	std::vector<unsigned int> durationList;
 	std::vector<std::string> timeStampList;
 	std::map<std::string, unsigned int> timerList;
+	std::cout << "0-退出 1-查看历史概要 2-设置定时器 3-取消定时器 4-查看当前记录"<< std::endl;
+	std::cout << "5-查看历史时长 6-查看历史细节 7-查看定时器"<< std::endl;
 	while (std::cin >> args) {
 		switch (args) {
 			case 0:
@@ -100,10 +122,12 @@ void *frontend(void *arg) {
 			default:
 				break;
 		}
+		std::cout << "0-退出 1-查看历史概要 2-设置定时器 3-取消定时器 4-查看当前记录"<< std::endl;
+		std::cout << "5-查看历史时长 6-查看历史细节 7-查看定时器"<< std::endl;
 	}
 }
 int main() {
-	interval = 5;
+	interval = 2;
 	timeManager.setInterval(interval);
 
 	pthread_t tid1, tid2;

@@ -50,3 +50,6 @@ void Detector::read() {
 std::map<std::string, unsigned int> Detector::getTimerList() {
 	return timerList;
 }
+void Detector::delay(std::string name) {
+	timerList[name] += 60;
+}
